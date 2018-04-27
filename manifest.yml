@@ -1,0 +1,14 @@
+---
+buildpack: python_buildpack
+command: gunicorn -c /home/vcap/app/gunicorn_config.py application:app
+env:
+  APP_NAME: Test Flask App
+
+applications:
+  - name: re-test-flask-app
+
+routes:
+  - route: re-test-flask-app.cloudapps.digital
+
+instances: 1
+memory: 512M

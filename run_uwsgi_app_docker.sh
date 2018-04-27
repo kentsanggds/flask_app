@@ -1,0 +1,1 @@
+uwsgi --http 0.0.0.0:5100 --wsgi-file application.py --callable app --processes 4 --threads 2

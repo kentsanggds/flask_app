@@ -1,2 +1,2 @@
 # flask_app
-Simple flask app for cloud foundry
+Simple flask app for Government PaaS
