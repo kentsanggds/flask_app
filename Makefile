@@ -2,13 +2,13 @@
 SHELL := /bin/bash
 DATE = $(shell date +%Y-%m-%dT%H:%M:%S)
 
-APP_NAME ?= re2-test-flask-app
+APP_NAME ?= test-flask-app
 
 APP_VERSION_FILE = version.py
 
 GIT_COMMIT ?= $(shell git rev-parse HEAD 2> /dev/null || cat commit || echo "")
 
-BUILD_TAG ?= re2-test-flask-app
+BUILD_TAG ?= ${APP_NAME}
 BUILD_NUMBER ?= manual
 BUILD_URL ?= manual
 DEPLOY_BUILD_NUMBER ?= ${BUILD_NUMBER}
@@ -23,7 +23,7 @@ CF_HOME ?= ${HOME}
 $(eval export CF_HOME)
 CF_SPACE ?= sandbox
 
-DOCKER_IMAGE = kenlt/test
+DOCKER_IMAGE = kenlt/${APP_NAME}
 DOCKER_IMAGE_TAG = ${CF_SPACE}
 DOCKER_IMAGE_NAME = ${DOCKER_IMAGE}:${DOCKER_IMAGE_TAG}
 DOCKER_TTY ?= $(if ${JENKINS_HOME},,t)
@@ -33,29 +33,6 @@ PORT ?= 5100
 .PHONY: help
 help:
 	@cat $(MAKEFILE_LIST) | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
-
-.PHONY: venv
-venv: venv/bin/activate ## Create virtualenv if it does not exist
-
-venv/bin/activate:
-	test -d venv || virtualenv venv -p python3
-	./venv/bin/pip install pip-accel
-
-.PHONY: dependencies
-dependencies: venv ## Install build dependencies
-	mkdir -p ${PIP_ACCEL_CACHE}
-	PIP_ACCEL_CACHE=${PIP_ACCEL_CACHE} ./venv/bin/pip-accel install --upgrade .
-
-.PHONY: build
-build: dependencies ## Build project
-
-.PHONY: _run
-_run:
-	./run_app.sh
-
-.PHONY: _run_uwsgi
-_run_uwsgi:
-	./run_uwsgi_app_docker.sh
 
 define run_docker_container
 	docker run -i${DOCKER_TTY} --rm \
@@ -77,19 +54,9 @@ define run_docker_container
 		${2}
 endef
 
-# ---- DOCKER COMMANDS ---- #
-
 .PHONY: run-with-docker
 run-with-docker: prepare-docker-build-image ## Build inside a Docker container
-	$(call run_docker_container,build, make _run)
-
-.PHONY: run-uwsgi-with-docker
-run-uwsgi-with-docker: prepare-docker-build-image ## Build inside a Docker container
-	$(call run_docker_container,build, make _run_uwsgi)
-
-.PHONY: bash-with-docker
-bash-with-docker: prepare-docker-build-image ## Build inside a Docker container
-	$(call run_docker_container,build, bash)
+	$(call run_docker_container)
 
 .PHONY: prepare-docker-build-image
 prepare-docker-build-image: ## Build docker image
@@ -97,6 +64,7 @@ prepare-docker-build-image: ## Build docker image
 		--build-arg http_proxy="${http_proxy}" \
 		--build-arg https_proxy="${https_proxy}" \
 		--build-arg NO_PROXY="${NO_PROXY}" \
+		--build-arg APP_NAME=${APP_NAME} \
 		--build-arg PORT=${PORT} \
 		-t ${DOCKER_IMAGE_NAME} \
 		.
@@ -114,4 +82,4 @@ upload-to-dockerhub: prepare-docker-build-image ## Upload the current version of
 
 .PHONY: cf-deploy
 cf-deploy: ## Deploys the app to Cloud Foundry
-	cf push test-flask-app --docker-image ${DOCKER_IMAGE_NAME}
+	cf push ${APP_NAME} --docker-image ${DOCKER_IMAGE_NAME}
