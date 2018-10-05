@@ -10,6 +10,7 @@ bind = "0.0.0.0:{}".format(os.getenv("PORT"))
 
 
 def on_starting(server):
+    print("**** Running on: {}".format(bind))
     server.log.info("Starting Flask app")
 
 

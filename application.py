@@ -1,5 +1,6 @@
 import os
-from flask import Flask
+from datetime import datetime
+from flask import Flask, request
 from gds_metrics import GDSMetrics
 
 app = Flask(__name__)
@@ -15,5 +16,12 @@ port = int(os.getenv("PORT"))
 def index():
     return '{}, I am running on port {}'.format(app_name, port)
 
+
+@app.before_request
+def before_request():
+    print(datetime.now(), request.endpoint)
+
+
 if __name__ == '__main__':
+    print('running on port: {}'.format(port))
     app.run(host='0.0.0.0', port=port)
