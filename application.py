@@ -8,8 +8,8 @@ app = Flask(__name__)
 metrics = GDSMetrics()
 metrics.init_app(app)
 
-app_name = os.getenv("APP_NAME")
-port = int(os.getenv("PORT"))
+app_name = os.getenv("APP_NAME", "test-flask")
+port = int(os.getenv("PORT", 5000))
 
 
 @app.route('/')

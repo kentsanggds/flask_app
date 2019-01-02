@@ -6,7 +6,7 @@ from gds_metrics.gunicorn import child_exit
 workers = 4
 worker_connections = 256
 errorlog = "gunicorn_error.log"
-bind = "0.0.0.0:{}".format(os.getenv("PORT"))
+bind = "0.0.0.0:{}".format(os.getenv("PORT", 5000))
 
 
 def on_starting(server):
